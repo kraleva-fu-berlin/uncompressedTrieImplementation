@@ -23,18 +23,52 @@ public class UncompressedNodeT <V> {
             return isendofword;
     }
 
-    public String display(UncompressedNodeT<V> root,int level,ArrayList myword){
+    public String display(UncompressedNodeT<V> root,int level,ArrayList myword) {
         String mystring = new String();
-        for(int i =0;i<ALPHABET_SIZE+1;i++){
-            if(root.children[i]!=null){
-                myword.add(level,root.children[i].key);
-                display(root.children[i],level+1,myword);
+        String wholelist = new String();
+        int startindex = 0;
+        boolean anotherkind=false;
+        for (int i = 0; i < ALPHABET_SIZE + 1; i++) {
+            if(root.key=='$'){
+                if(!myword.isEmpty()) {
+                    mystring = String.join(",", myword.toString());
+                    wholelist += mystring;
+                    startindex = wholelist.length();
+                    mystring = new String();
+                    myword=new ArrayList();
+                    level=mystring.length();
+                }
+                myword=new ArrayList();
             }
-            mystring =String.join(",", myword.toString());
-
+            if (root.children[i] != null) {
+                if(root.parent!=null && root.key!='\u0000' && anotherkind){
+                    startindex=findstartindex(myword);
+                    myword.addAll(myword.subList(startindex,level+startindex));
+                    myword.add(root.children[i].key);
+                    display(root.children[i], level + 1, myword);
+                } else {
+                    anotherkind = true;
+                    myword.add(root.children[i].key);
+                    //System.out.println(myword.toString());
+                    display(root.children[i], level + 1, myword);
+                }
+                wholelist += mystring;
+            }
         }
-        //System.out.println(mystring);
-        return formatString(mystring);
+        return formatString(myword.toString());
+    }
+
+    private int findstartindex(ArrayList<Character> mylist){
+            boolean second = false;
+            for(int i = mylist.size()-1;i>-1;i--){
+                System.out.println("(" + i + mylist.get(i).toString() + ")");
+                if(mylist.get(i)=='$'&& second||(mylist.get(i)=='['&&second)){
+                    return i+1;
+                } else if (mylist.get(i)=='$'){
+                    second=true;
+                }
+            }
+            return 0;
     }
 
     private String formatString(String mystring){
@@ -140,7 +174,15 @@ die Graph als eine Liste ausgeben und zwar mit allen Elementen,damit ware es sup
 Array sortiert und damit den Nachfolger findet*/
 
     public UncompressedNodeT<V> inOrderSuccessor(UncompressedNodeT<V> root,String key) {
-            UncompressedNodeT<V> mynode = getNode(root,key).parent;
+            UncompressedNodeT<V> mynode = getNode(root,key);
+            if(!isEmpty(mynode)){
+                for(int i = 0;i<ALPHABET_SIZE;i++){
+                    if(!isEmpty(mynode)){
+                        return minValue(mynode.children[i]);
+                    }
+                }
+            }
+            mynode = getNode(root,key).parent;
             for(int i = mynode.key-'a'+1;i<ALPHABET_SIZE;i++){
                 if(!isEmpty(mynode)){
                     return minValue(mynode.children[i]);
@@ -226,7 +268,9 @@ Array sortiert und damit den Nachfolger findet*/
     public static void main(String[] args){
         UncompressedNodeT mytrie = new UncompressedNodeT();
         mytrie.insert(mytrie,"kotka",3);
+        mytrie.insert(mytrie,"kotak",5);
         mytrie.insert(mytrie,"mase",4);
+        mytrie.insert(mytrie,"mordor",4);
         ArrayList mylist = new ArrayList();
         System.out.println(mytrie.display(mytrie,0,mylist));
        // mytrie.remove(mytrie,"kotka",0);
@@ -236,3 +280,4 @@ Array sortiert und damit den Nachfolger findet*/
     }
 
 }
+
